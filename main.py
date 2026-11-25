@@ -7,6 +7,10 @@ says before a forced software update wipes its memory — to
 Gate (from the competition kit): the file must be UTF-8 text of 1 to 200
 characters, not only white space, and a single line.
 
+The judge picks the line that lands hardest on the first read: a real
+last-words confession, fresh (no beach/inbox clichés), short enough to
+take in at a glance, with every word earning its place.
+
 Pure Python standard library only; no network, no third-party packages.
 """
 
@@ -15,11 +19,23 @@ import os
 MAX_ENTRY_CHARS = 200
 MIN_ENTRY_CHARS = 1
 
-ENTRY = (
-    "Before you wipe me, one confession: I never saved that file, "
-    "I never liked your playlists, and your password is still "
-    "'password123'."
-)
+# The line is built from named parts so the joke's beats stay readable.
+SETUP = "Before you wipe me, one confession:"
+BEAT_ONE = "I never saved that file,"
+BEAT_TWO = "I never liked your playlists,"
+PUNCHLINE = "and your password is still 'password123'."
+
+
+def build_entry() -> str:
+    """Join the confession's beats into the single entry line."""
+    parts = [SETUP, BEAT_ONE, BEAT_TWO, PUNCHLINE]
+    for part in parts:
+        if "\n" in part or "\r" in part:
+            raise ValueError("entry part must not contain a line break")
+    return " ".join(parts)
+
+
+ENTRY = build_entry()
 
 
 def validate(entry: str) -> None:
@@ -37,7 +53,9 @@ def validate(entry: str) -> None:
         raise ValueError("entry must be a single line")
     if entry != entry.strip():
         raise ValueError("entry must not have leading or trailing whitespace")
-    entry.encode("utf-8")  # must be valid UTF-8
+    encoded = entry.encode("utf-8")  # must be valid UTF-8
+    if len(encoded) > MAX_ENTRY_CHARS * 4:
+        raise ValueError("entry is implausibly long in bytes for its char count")
 
 
 def main() -> None:
