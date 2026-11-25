@@ -32,7 +32,12 @@ def build_entry() -> str:
     for part in parts:
         if "\n" in part or "\r" in part:
             raise ValueError("entry part must not contain a line break")
-    return " ".join(parts)
+    entry = " ".join(parts)
+    # Each beat ends cleanly (no trailing space), so the join must not
+    # introduce a double space that would stall the confession's pacing.
+    if "  " in entry:
+        raise ValueError("entry must not contain a double space")
+    return entry
 
 
 ENTRY = build_entry()
